@@ -1,7 +1,5 @@
 # This python script is meant to provide an example of how WashU API endpoints can
 # be accessed. 
-
-
 import requests
 import os
 from requests.auth import HTTPBasicAuth
@@ -46,8 +44,17 @@ def post_data(api_url, token, data):
                     return post_data(api_url, token, data)  # Retry with new token
                 else:
                     return "Failed to refresh token."
+        elif response.status_code == 403:
+            print("Response is a 403 error code. You may be receiving this error code if you are not on WashU's network or VPN.")
+        elif response.status_code == 402:
+            print("Response is a 402 error code. You may be receiving this error code if have exceed the budget of your account.")
+            print("Please contact di2accelerator@wustl.edu for assistance.")                
+        elif response.status_code == 418:
+            print("Response is a 418 error code. You may be receiving this error code if more than 10 calls a second has been performed.")
+            print("Please contact di2accelerator@wustl.edu for assistance.")         
         elif response.status_code != 200:
             return response.text
+        
         return response.json()
     except requests.RequestException as e:
         print(f"Failed to post data: {e}")
@@ -66,29 +73,22 @@ token = get_access_token(token_url, client_id, client_secret, scope)
 
 # These are end points that you can use for completions. You should only uncomment
 # the one you want to test.
+#api_url = 'https://api.openai.wustl.edu/base-gpt-35-turbo-4k/v1/chat/completions'
+#api_url = 'https://api.openai.wustl.edu/base-gpt-35-turbo-16k/v1/chat/completions'
 #api_url = 'https://api.openai.wustl.edu/base-gpt-4-8k/v1/chat/completions'
-#api_url = 'https://api.openai.wustl.edu/base-gpt-4o-128k/v1/chat/completions'
+api_url = 'https://api.openai.wustl.edu/base-gpt-4o-128k/v1/chat/completions'
 
 
-
-# This variable is used to test completions end point. Be sure to comment out the other
-# data variable if using the embedding API.
-#data = {
-#    "messages": [
-#        {"role": "user", "content": "How many schools or colleges are at Washington University?"}
-#    ]
-#}
-
-
-# This endpoint can be used for embeddings
-api_url = 'https://api.openai.wustl.edu/base-text-embedding-3-small/v1/embeddings'
-
-# This variable is used to test completions end point. Be sure to comment out the other
-# data variable if using the embedding API.
+# This variable is used to test completions end point.
 data = {
-    "input": "Tesing the embeddings API."
+    "messages": [
+        {"role": "user", "content": "What is the first letter of the alphabet?"}
+    ]
 }
 
-
 result = post_data(api_url, token, data)
-print("Response from API:", result)
+
+#print("Response from API:", result)
+
+message_content = result['choices'][0]['message']['content']
+print("Message Response:", message_content)
